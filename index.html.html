@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miicafecito — Order</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --cream:#f5f0e8; --warm:#e8ddd0; --brown:#3d2314; --mocha:#7c4a2d; --gold:#c9a87c; --light:#faf7f2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--light); color:var(--brown); font-family:'Jost',sans-serif; font-weight:300; min-height:100vh; }
+  .hero { background:var(--brown); color:var(--cream); text-align:center; padding:60px 20px 50px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at center,rgba(201,168,124,0.15) 0%,transparent 60%); pointer-events:none; }
+  .hero-logo { font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:300; letter-spacing:6px; color:var(--gold); margin-bottom:8px; }
+  .hero-sub { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:rgba(245,240,232,0.6); }
+  .container { max-width:680px; margin:0 auto; padding:40px 20px 80px; }
+  .section-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:400; font-style:italic; color:var(--mocha); margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--warm); }
+  .form-group { margin-bottom:28px; }
+  label { display:block; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--mocha); margin-bottom:8px; }
+  input, select, textarea { width:100%; padding:14px 16px; background:white; border:1px solid var(--warm); border-radius:4px; font-family:'Jost',sans-serif; font-size:14px; font-weight:300; color:var(--brown); outline:none; transition:border-color 0.2s; appearance:none; }
+  input:focus, select:focus, textarea:focus { border-color:var(--gold); }
+  textarea { resize:vertical; min-height:90px; line-height:1.6; }
+  .drink-builder { background:white; border:1px solid var(--warm); border-radius:8px; padding:24px; margin-bottom:16px; position:relative; }
+  .drink-number { font-family:'Cormorant Garamond',serif; font-size:13px; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+  .drink-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .remove-drink { position:absolute; top:16px; right:16px; background:none; border:none; color:#ccc; cursor:pointer; font-size:18px; line-height:1; padding:4px; transition:color 0.2s; }
+  .remove-drink:hover { color:var(--mocha); }
+  .add-drink-btn { width:100%; padding:14px; background:none; border:1px dashed var(--gold); border-radius:4px; color:var(--gold); font-family:'Jost',sans-serif; font-size:12px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; margin-bottom:28px; }
+  .add-drink-btn:hover { background:var(--gold); color:white; }
+  .option-group { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+  .option-group.four { grid-template-columns:repeat(4,1fr); }
+  .opt-btn { padding:10px 8px; text-align:center; border:1px solid var(--warm); border-radius:4px; cursor:pointer; font-size:12px; transition:all 0.2s; background:white; color:var(--brown); line-height:1.4; }
+  .opt-btn:hover { border-color:var(--gold); }
+  .opt-btn.selected { background:var(--brown); color:var(--cream); border-color:var(--brown); }
+  .opt-sub { display:block; font-size:10px; opacity:0.7; margin-top:2px; }
+  .size-display { padding:14px 16px; background:var(--warm); border:1px solid var(--warm); border-radius:4px; font-size:14px; color:var(--mocha); }
+  .slots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:8px; }
+  .slot { padding:12px 8px; text-align:center; border:1px solid var(--warm); border-radius:4px; cursor:pointer; font-size:12px; transition:all 0.2s; background:white; color:var(--brown); }
+  .slot:hover:not(.unavailable) { border-color:var(--gold); }
+  .slot.selected { background:var(--brown); color:var(--cream); border-color:var(--brown); }
+  .slot.unavailable { opacity:0.35; cursor:not-allowed; text-decoration:line-through; }
+  .slot-count { font-size:9px; display:block; opacity:0.6; margin-top:2px; }
+  .slot-note { font-size:11px; color:var(--gold); letter-spacing:1px; margin-bottom:28px; }
+  .payment-options { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+  .pay-option { padding:14px; text-align:center; border:1px solid var(--warm); border-radius:4px; cursor:pointer; font-size:12px; letter-spacing:1px; transition:all 0.2s; background:white; }
+  .pay-option:hover { border-color:var(--gold); }
+  .pay-option.selected { background:var(--brown); color:var(--cream); border-color:var(--brown); }
+
+  /* Payment instructions box — shows after selecting method */
+  .pay-instructions { display:none; background:var(--brown); color:var(--cream); border-radius:8px; padding:24px; margin-bottom:20px; }
+  .pay-instructions.show { display:block; }
+  .pay-inst-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-style:italic; color:var(--gold); margin-bottom:12px; }
+  .pay-inst-amount { font-size:32px; font-family:'Cormorant Garamond',serif; color:var(--gold); margin-bottom:4px; }
+  .pay-inst-label { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(245,240,232,0.5); margin-bottom:16px; }
+  .pay-inst-detail { background:rgba(255,255,255,0.07); border-radius:6px; padding:14px 16px; margin-bottom:16px; }
+  .pay-inst-method { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  .pay-inst-info { font-size:16px; color:var(--cream); font-weight:400; }
+  .pay-inst-steps { font-size:12px; color:rgba(245,240,232,0.7); line-height:1.9; }
+  .pay-inst-steps span { color:var(--gold); font-weight:500; }
+
+  /* Screenshot upload area */
+  .upload-area { border:2px dashed var(--warm); border-radius:8px; padding:32px 20px; text-align:center; cursor:pointer; transition:all 0.2s; background:white; margin-bottom:16px; position:relative; }
+  .upload-area:hover, .upload-area.dragover { border-color:var(--gold); background:rgba(201,168,124,0.05); }
+  .upload-area.has-file { border-color:#5a9e6f; border-style:solid; background:rgba(90,158,111,0.05); }
+  .upload-icon { font-size:32px; margin-bottom:10px; }
+  .upload-text { font-size:13px; color:var(--mocha); margin-bottom:4px; }
+  .upload-sub { font-size:11px; color:rgba(61,35,20,0.4); letter-spacing:1px; }
+  .upload-success { display:none; align-items:center; gap:12px; justify-content:center; }
+  .upload-success.show { display:flex; }
+  .upload-check { width:36px; height:36px; background:#5a9e6f; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:16px; flex-shrink:0; }
+  .upload-filename { font-size:13px; color:#2d6e45; font-weight:400; text-align:left; }
+  .upload-change { font-size:11px; color:var(--gold); cursor:pointer; text-decoration:underline; margin-top:4px; display:block; }
+  .preview-img { max-width:100%; max-height:200px; border-radius:6px; margin-top:12px; display:none; }
+  #screenshotInput { position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+
+  .summary-box { background:var(--brown); color:var(--cream); border-radius:8px; padding:28px; margin-bottom:28px; }
+  .summary-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-style:italic; color:var(--gold); margin-bottom:16px; }
+  .summary-line { display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid rgba(245,240,232,0.1); color:rgba(245,240,232,0.8); }
+  .summary-total { display:flex; justify-content:space-between; font-size:16px; padding-top:14px; color:var(--gold); font-weight:500; }
+  .submit-btn { width:100%; padding:18px; background:var(--mocha); color:var(--cream); border:none; border-radius:4px; font-family:'Jost',sans-serif; font-size:12px; letter-spacing:4px; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+  .submit-btn:hover { background:var(--brown); }
+  .submit-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .note-box { background:var(--warm); border-radius:6px; padding:16px 20px; font-size:12px; line-height:1.7; color:var(--mocha); margin-bottom:28px; }
+  .note-box strong { display:block; font-size:10px; letter-spacing:3px; text-transform:uppercase; margin-bottom:6px; color:var(--brown); }
+  .success-screen { display:none; text-align:center; padding:60px 20px; }
+  .success-icon { font-size:48px; margin-bottom:20px; }
+  .success-title { font-family:'Cormorant Garamond',serif; font-size:36px; font-style:italic; color:var(--mocha); margin-bottom:12px; }
+  .success-sub { font-size:13px; color:var(--mocha); line-height:1.8; max-width:400px; margin:0 auto 32px; }
+  .success-badge { background:var(--warm); border-radius:8px; padding:20px 24px; max-width:360px; margin:0 auto; text-align:left; }
+  .success-badge h4 { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--mocha); margin-bottom:10px; }
+  .success-badge p { font-size:13px; color:var(--brown); margin-bottom:5px; line-height:1.6; }
+  .divider { height:1px; background:var(--warm); margin:32px 0; }
+  .loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(61,35,20,0.8); z-index:999; align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  .loading-overlay.show { display:flex; }
+  .loading-spinner { width:40px; height:40px; border:3px solid rgba(201,168,124,0.3); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+  .loading-text { color:var(--cream); font-size:13px; letter-spacing:2px; text-transform:uppercase; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @media (max-width:480px) {
+    .hero-logo { font-size:38px; }
+    .drink-row { grid-template-columns:1fr; }
+    .slots-grid { grid-template-columns:repeat(3,1fr); }
+    .option-group.four { grid-template-columns:repeat(2,1fr); }
+    .pay-inst-amount { font-size:26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Submitting your order...</div>
+</div>
+
+<div class="hero">
+  <div class="hero-logo">miicafecito</div>
+  <div class="hero-sub">Home-based · San Bernardino, CA</div>
+</div>
+
+<div class="container">
+  <div id="orderForm">
+    <div class="section-title">Place Your Order</div>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="customerName" placeholder="First & last name" />
+    </div>
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="tel" id="customerPhone" placeholder="For order updates" />
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title">Your Drinks</div>
+    <div id="drinksContainer"></div>
+    <button class="add-drink-btn" onclick="addDrink()">+ Add Another Drink</button>
+
+    <div class="divider"></div>
+    <div class="section-title">Pickup Time</div>
+    <div class="slots-grid" id="slotsGrid"></div>
+    <p class="slot-note">✦ Strikethrough slots are fully booked · 4 drinks per slot</p>
+
+    <div class="divider"></div>
+    <div class="section-title">Payment</div>
+
+    <div class="payment-options">
+      <div class="pay-option" onclick="selectPayment(this,'Zelle')">Zelle</div>
+      <div class="pay-option" onclick="selectPayment(this,'Apple Pay')">Apple Pay</div>
+    </div>
+
+    <!-- Payment instructions — shown after selecting method -->
+    <div class="pay-instructions" id="payInstructions">
+      <div class="pay-inst-title">Send Payment Now</div>
+      <div class="pay-inst-amount" id="instAmount">$0.00</div>
+      <div class="pay-inst-label">Amount Due</div>
+      <div class="pay-inst-detail">
+        <div class="pay-inst-method" id="instMethod"></div>
+        <div class="pay-inst-info" id="instInfo"></div>
+      </div>
+      <div class="pay-inst-steps">
+        1. Open your <span id="instAppName"></span> app<br>
+        2. Send <span id="instAmount2"></span> to the info above<br>
+        3. Include your name in the memo<br>
+        4. Take a screenshot of the confirmation<br>
+        5. Upload it below to complete your order
+      </div>
+    </div>
+
+    <!-- Screenshot upload — shown after selecting payment -->
+    <div id="screenshotSection" style="display:none">
+      <label>Payment Screenshot <span style="color:#c9a87c">*Required</span></label>
+      <div class="upload-area" id="uploadArea" ondragover="handleDrag(event,true)" ondragleave="handleDrag(event,false)" ondrop="handleDrop(event)">
+        <input type="file" id="screenshotInput" accept="image/*" onchange="handleFile(this.files[0])">
+        <div id="uploadDefault">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">Tap to upload your payment screenshot</div>
+          <div class="upload-sub">JPG, PNG · Required to confirm your order</div>
+        </div>
+        <div class="upload-success" id="uploadSuccess">
+          <div class="upload-check">✓</div>
+          <div>
+            <div class="upload-filename" id="uploadFilename"></div>
+            <span class="upload-change" onclick="resetUpload(event)">Change screenshot</span>
+          </div>
+        </div>
+        <img id="previewImg" class="preview-img" alt="Payment screenshot preview" />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="orderNotes" placeholder="Any special requests or instructions..."></textarea>
+    </div>
+
+    <div class="note-box">
+      <strong>Pick Up</strong>
+      All orders will be in the fridge by the front door. Gate will be open and you can park in the driveway. Orders will be ready at your designated pickup time. Payment must be sent before your order begins.
+    </div>
+
+    <div class="summary-box">
+      <div class="summary-title">Order Summary</div>
+      <div id="summaryLines"></div>
+      <div class="summary-total"><span>Total</span><span id="summaryTotal">$0.00</span></div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitOrder()">Confirm Order →</button>
+  </div>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">☕</div>
+    <div class="success-title">Order Confirmed!</div>
+    <div class="success-sub" id="successMessage"></div>
+    <div class="success-badge" id="successBadge"></div>
+  </div>
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-92F-sTeqQR7a_woKRcXe7dNQ1Sqh_GC0iYn-dJJgSpflQLS4ncnIaIfrnK_0ecRfdA/exec
+  const MAX_PER_SLOT = 4;
+
+  const PAYMENT_INFO = {
+    'Zelle':     { info: '(909) 555-1234 or janellesalas12@gmail.com', app: 'Zelle' },
+    'Apple Pay': { info: 'Send to your phone number — shared via text', app: 'Apple Pay' }
+  };
+
+  const MENU = {
+    coffee: [
+      {name:'White Mocha',price:8},{name:'Spanish',price:8},{name:'Golden Eagle',price:8},
+      {name:'Brown Sugar',price:8},{name:'Coco Puffs',price:8},{name:'Cookie Butter',price:8},
+      {name:'Churro',price:8},{name:'Mazapan',price:8},{name:'Strawberry Shortcake',price:8},
+      {name:'Dulce de Leche',price:8},{name:'Banana Latte',price:8},{name:'Ferrero Rocher',price:8}
+    ],
+    matcha: [
+      {name:'Regular Matcha',price:9},{name:'Banana Matcha',price:9},{name:'Oreo Matcha',price:9},
+      {name:'Strawberry Matcha',price:9},{name:'Fruity Pebbles Matcha',price:9},
+      {name:'Fresas con Crema',price:9},{name:'Strawberry Shortcake Matcha',price:9},
+      {name:'Charms Matcha',price:10},{name:'Honey Bliss',price:10}
+    ]
+  };
+
+  const ALL_SLOTS = [
+    '9:00 AM','9:20 AM','9:40 AM','10:00 AM','10:20 AM','10:40 AM',
+    '11:00 AM','11:20 AM','11:40 AM','12:00 PM','12:20 PM','12:40 PM',
+    '1:00 PM','1:20 PM','1:40 PM','2:00 PM','2:20 PM','2:40 PM','3:00 PM'
+  ];
+
+  let drinks=[], selectedSlot=null, selectedPaymentMethod=null, drinkCount=0, slotCounts={}, screenshotBase64=null;
+
+  async function loadSlotCounts() {
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?action=getSlots`);
+      const data = await res.json();
+      slotCounts = data.slots || {};
+    } catch(e) { slotCounts={}; }
+    renderSlots();
+  }
+
+  function renderSlots() {
+    document.getElementById('slotsGrid').innerHTML = ALL_SLOTS.map(slot => {
+      const count = slotCounts[slot]||0, full = count>=MAX_PER_SLOT, rem = MAX_PER_SLOT-count;
+      return `<div class="slot ${full?'unavailable':''}" onclick="${full?'':` selectSlot(this,'${slot}')`}">
+        ${slot}<span class="slot-count">${full?'Full':rem+' left'}</span></div>`;
+    }).join('');
+  }
+
+  function selectSlot(el, slot) {
+    document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+    el.classList.add('selected'); selectedSlot=slot; updateSummary();
+  }
+
+  function addDrink() {
+    drinkCount++; const id=drinkCount;
+    drinks.push({id,name:'',price:0,isMatcha:false,size:'16oz',sizeExtra:0,milk:'Regular Milk',milkPrice:0,extras:[]});
+    const coOpts=MENU.coffee.map(d=>`<option value="${d.name}|${d.price}|coffee">${d.name}</option>`).join('');
+    const maOpts=MENU.matcha.map(d=>`<option value="${d.name}|${d.price}|matcha">${d.name}</option>`).join('');
+    document.getElementById('drinksContainer').insertAdjacentHTML('beforeend',`
+      <div class="drink-builder" id="drink-${id}">
+        <div class="drink-number">Drink ${id}</div>
+        ${id>1?`<button class="remove-drink" onclick="removeDrink(${id})">×</button>`:''}
+        <div class="drink-row">
+          <div><label>Drink</label>
+            <select onchange="updateDrink(${id},'drink',this.value)">
+              <option value="">Select a drink</option>
+              <optgroup label="— Coffee —">${coOpts}</optgroup>
+              <optgroup label="— Matcha —">${maOpts}</optgroup>
+            </select></div>
+          <div id="size-wrap-${id}"><label>Size</label>
+            <select id="size-select-${id}" onchange="updateDrink(${id},'size',this.value)">
+              <option value="16oz">Regular 16oz</option>
+              <option value="24oz">Large 24oz (+$1)</option>
+            </select></div>
+        </div>
+        <label>Milk</label>
+        <div class="option-group" style="margin-bottom:16px">
+          <div class="opt-btn selected" onclick="selectMilk(${id},this,'Regular Milk',0)">Regular Milk<span class="opt-sub">Free</span></div>
+          <div class="opt-btn" onclick="selectMilk(${id},this,'2% Milk',0)">2% Milk<span class="opt-sub">Free</span></div>
+          <div class="opt-btn" onclick="selectMilk(${id},this,'Oat Milk',0.50)">Oat Milk<span class="opt-sub">+$0.50</span></div>
+        </div>
+        <label>Extras</label>
+        <div class="option-group four">
+          <div class="opt-btn" onclick="toggleExtra(${id},this,'Extra Toppings',0.50)">Extra Toppings<span class="opt-sub">+$0.50</span></div>
+          <div class="opt-btn" onclick="toggleExtra(${id},this,'Extra Shot',1.00)">Extra Shot<span class="opt-sub">+$1.00</span></div>
+          <div class="opt-btn" onclick="toggleExtra(${id},this,'Cold Foam',0.50)">Cold Foam<span class="opt-sub">+$0.50</span></div>
+          <div class="opt-btn" onclick="toggleExtra(${id},this,'Banana Pudding',1.00)">Banana Pudding<span class="opt-sub">+$1.00</span></div>
+        </div>
+      </div>`);
+    updateSummary();
+  }
+
+  function removeDrink(id) {
+    drinks=drinks.filter(d=>d.id!==id);
+    document.getElementById(`drink-${id}`).remove();
+    updateSummary();
+  }
+
+  function updateDrink(id, field, value) {
+    const drink=drinks.find(d=>d.id===id); if(!drink) return;
+    if (field==='drink') {
+      const p=value.split('|'); drink.name=p[0]||''; drink.price=parseFloat(p[1])||0; drink.isMatcha=p[2]==='matcha';
+      const sw=document.getElementById(`size-wrap-${id}`);
+      if (drink.isMatcha) { drink.size='16oz'; drink.sizeExtra=0; sw.innerHTML=`<label>Size</label><div class="size-display">16oz only</div>`; }
+      else if (!sw.querySelector('select')) { sw.innerHTML=`<label>Size</label><select id="size-select-${id}" onchange="updateDrink(${id},'size',this.value)"><option value="16oz">Regular 16oz</option><option value="24oz">Large 24oz (+$1)</option></select>`; }
+    } else if (field==='size') { drink.size=value; drink.sizeExtra=value==='24oz'?1:0; }
+    updateSummary();
+  }
+
+  function selectMilk(id, el, name, price) {
+    const drink=drinks.find(d=>d.id===id); if(!drink) return;
+    drink.milk=name; drink.milkPrice=price;
+    el.closest('.option-group').querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+    el.classList.add('selected'); updateSummary();
+  }
+
+  function toggleExtra(id, el, name, price) {
+    const drink=drinks.find(d=>d.id===id); if(!drink) return;
+    const i=drink.extras.findIndex(e=>e.name===name);
+    if (i>-1) { drink.extras.splice(i,1); el.classList.remove('selected'); }
+    else { drink.extras.push({name,price}); el.classList.add('selected'); }
+    updateSummary();
+  }
+
+  function selectPayment(el, method) {
+    document.querySelectorAll('.pay-option').forEach(p=>p.classList.remove('selected'));
+    el.classList.add('selected'); selectedPaymentMethod=method;
+    showPaymentInstructions(method);
+    updateSummary();
+  }
+
+  function showPaymentInstructions(method) {
+    const total = calcTotal();
+    const info = PAYMENT_INFO[method];
+    document.getElementById('instAmount').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('instAmount2').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('instMethod').textContent = method;
+    document.getElementById('instInfo').textContent = info.info;
+    document.getElementById('instAppName').textContent = info.app;
+    document.getElementById('payInstructions').classList.add('show');
+    document.getElementById('screenshotSection').style.display = 'block';
+  }
+
+  function calcTotal() {
+    let total=0;
+    drinks.forEach(d=>{ if(d.name){ let b=d.price+(d.sizeExtra||0)+(d.milkPrice||0); d.extras.forEach(e=>{b+=e.price;}); total+=b; } });
+    return total;
+  }
+
+  function updateSummary() {
+    let total=0, html='';
+    drinks.forEach(d=>{
+      if(d.name){
+        let base=d.price+(d.sizeExtra||0)+(d.milkPrice||0);
+        d.extras.forEach(e=>{base+=e.price;}); total+=base;
+        html+=`<div class="summary-line"><span>${d.name} (${d.isMatcha?'16oz':d.size})</span><span>$${base.toFixed(2)}</span></div>`;
+        if(d.milk&&d.milk!=='Regular Milk') html+=`<div class="summary-line" style="padding-left:12px;font-size:11px;opacity:0.7"><span>+ ${d.milk}</span><span></span></div>`;
+        d.extras.forEach(e=>{html+=`<div class="summary-line" style="padding-left:12px;font-size:11px;opacity:0.7"><span>+ ${e.name}</span><span></span></div>`;});
+      }
+    });
+    if(selectedSlot) html+=`<div class="summary-line"><span>Pickup time</span><span>${selectedSlot}</span></div>`;
+    document.getElementById('summaryLines').innerHTML=html||'<div class="summary-line" style="opacity:0.5"><span>Add drinks above</span><span>—</span></div>';
+    document.getElementById('summaryTotal').textContent=`$${total.toFixed(2)}`;
+    // Update amount in instructions if visible
+    if(selectedPaymentMethod){
+      document.getElementById('instAmount').textContent=`$${total.toFixed(2)}`;
+      document.getElementById('instAmount2').textContent=`$${total.toFixed(2)}`;
+    }
+  }
+
+  // Screenshot handling
+  function handleFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      screenshotBase64 = e.target.result;
+      document.getElementById('uploadDefault').style.display='none';
+      document.getElementById('uploadSuccess').classList.add('show');
+      document.getElementById('uploadFilename').textContent = file.name;
+      document.getElementById('uploadArea').classList.add('has-file');
+      const preview=document.getElementById('previewImg');
+      preview.src=e.target.result; preview.style.display='block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetUpload(e) {
+    e.stopPropagation();
+    screenshotBase64=null;
+    document.getElementById('screenshotInput').value='';
+    document.getElementById('uploadDefault').style.display='block';
+    document.getElementById('uploadSuccess').classList.remove('show');
+    document.getElementById('uploadArea').classList.remove('has-file');
+    document.getElementById('previewImg').style.display='none';
+  }
+
+  function handleDrag(e, over) { e.preventDefault(); document.getElementById('uploadArea').classList.toggle('dragover',over); }
+  function handleDrop(e) { e.preventDefault(); handleDrag(e,false); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }
+
+  async function submitOrder() {
+    const name=document.getElementById('customerName').value.trim();
+    const phone=document.getElementById('customerPhone').value.trim();
+    const notes=document.getElementById('orderNotes').value.trim();
+    const validDrinks=drinks.filter(d=>d.name);
+    if (!name) { alert('Please enter your name.'); return; }
+    if (!phone) { alert('Please enter your phone number.'); return; }
+    if (!validDrinks.length) { alert('Please select at least one drink.'); return; }
+    if (!selectedSlot) { alert('Please select a pickup time.'); return; }
+    if (!selectedPaymentMethod) { alert('Please select a payment method.'); return; }
+    if (!screenshotBase64) { alert('Please upload your payment screenshot to confirm your order.'); return; }
+
+    let total=0;
+    const drinksSummary=validDrinks.map(d=>{
+      let base=d.price+(d.sizeExtra||0)+(d.milkPrice||0);
+      d.extras.forEach(e=>{base+=e.price;}); total+=base;
+      const extras=[d.milk!=='Regular Milk'?d.milk:'',...d.extras.map(e=>e.name)].filter(Boolean).join(', ');
+      return `${d.name} (${d.isMatcha?'16oz':d.size})${extras?' — '+extras:''}`;
+    }).join('\n');
+
+    const orderData={ name, phone, drinks:drinksSummary, slot:selectedSlot, payment:selectedPaymentMethod, total:total.toFixed(2), notes, screenshot:screenshotBase64 };
+
+    document.getElementById('loadingOverlay').classList.add('show');
+    document.getElementById('submitBtn').disabled=true;
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({action:'newOrder',...orderData})
+      });
+    } catch(e) {}
+
+    document.getElementById('loadingOverlay').classList.remove('show');
+    document.getElementById('orderForm').style.display='none';
+    document.getElementById('successScreen').style.display='block';
+
+    document.getElementById('successMessage').innerHTML=`Thank you, ${name}! 🤍<br><br>Your order for <strong>${selectedSlot}</strong> is confirmed.<br>We received your payment screenshot and will verify shortly.${notes?`<br><br><em>Notes: ${notes}</em>`:''}`;
+    document.getElementById('successBadge').innerHTML=`<h4>What happens next</h4><p>✓ Your order has been submitted</p><p>✓ Payment screenshot received</p><p>✓ Your drinks will be ready at <strong>${selectedSlot}</strong></p><p style="margin-top:10px;font-size:11px;opacity:0.6">Gate will be open — park in the driveway. Drinks are in the fridge by the front door.</p>`;
+  }
+
+  loadSlotCounts();
+  addDrink();
+</script>
+</body>
+</html>
