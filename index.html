@@ -214,11 +214,11 @@
 </div>
 
 <script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-92F-sTeqQR7a_woKRcXe7dNQ1Sqh_GC0iYn-dJJgSpflQLS4ncnIaIfrnK_0ecRfdA/exec
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-92F-sTeqQR7a_woKRcXe7dNQ1Sqh_GC0iYn-dJJgSpflQLS4ncnIaIfrnK_0ecRfdA/exec';
   const MAX_PER_SLOT = 4;
 
   const PAYMENT_INFO = {
-    'Zelle':     { info: '(909) 555-1234 or janellesalas12@gmail.com', app: 'Zelle' },
+    'Zelle':     { info: 'janellesalas12@gmail.com', app: 'Zelle' },
     'Apple Pay': { info: 'Send to your phone number — shared via text', app: 'Apple Pay' }
   };
 
@@ -246,6 +246,7 @@
   let drinks=[], selectedSlot=null, selectedPaymentMethod=null, drinkCount=0, slotCounts={}, screenshotBase64=null;
 
   async function loadSlotCounts() {
+    renderSlots(); // Always show slots immediately
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=getSlots`);
       const data = await res.json();
