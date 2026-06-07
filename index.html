@@ -218,8 +218,8 @@
   const MAX_PER_SLOT = 4;
 
   const PAYMENT_INFO = {
-    'Zelle':     { info: 'janellesalas12@gmail.com', app: 'Zelle' },
-    'Apple Pay': { info: 'Send to your phone number — shared via text', app: 'Apple Pay' }
+    'Zelle':     { info: 'Janelle Salas · 909-659-5421 · janellesalas12@gmail.com', app: 'Zelle' },
+    'Apple Pay': { info: '909-659-5421', app: 'Apple Pay' }
   };
 
   const MENU = {
@@ -259,7 +259,7 @@
     document.getElementById('slotsGrid').innerHTML = ALL_SLOTS.map(slot => {
       const count = slotCounts[slot]||0, full = count>=MAX_PER_SLOT, rem = MAX_PER_SLOT-count;
       return `<div class="slot ${full?'unavailable':''}" onclick="${full?'':` selectSlot(this,'${slot}')`}">
-        ${slot}<span class="slot-count">${full?'Full':rem+' left'}</span></div>`;
+        ${slot}</div>`;
     }).join('');
   }
 
